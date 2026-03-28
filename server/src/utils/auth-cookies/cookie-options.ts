@@ -1,6 +1,10 @@
 import { CookieOptions } from "express"
 
-const PREFIX = process.env.NODE_ENV === "production" ? "__Host-" : ""
+// __Host- only makes sense when frontend and backend share the same domain
+// const PREFIX = process.env.NODE_ENV === "production" ? "__Host-" : ""
+
+// For Vercel + Render (different domains), it adds no security benefit
+const PREFIX = ""
 
 export const ACCESS_COOKIE  = `${PREFIX}access_token`
 export const REFRESH_COOKIE = "refresh_token"
