@@ -1,4 +1,6 @@
 import axios from "axios";
+import { getCsrfToken, setCsrfToken } from "./csrf";
+import { ApiResponse } from "./types/api-response";
 
 const CSRF_COOKIE        = "csrf_token";
 const CSRF_HEADER_OPTION = "x-csrf-token"
@@ -24,8 +26,8 @@ api.interceptors.request.use((config) => {
   const method = (config.method || "GET").toUpperCase();
 
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-    const CSRF_TOKEN = getCookie(CSRF_COOKIE);
-    if (CSRF_TOKEN) config.headers[CSRF_HEADER_OPTION] = CSRF_TOKEN;
+    const token = getCsrfToken();
+    if (token) config.headers[CSRF_HEADER_OPTION] = token;
   }
 
   return config;
@@ -62,12 +64,14 @@ api.interceptors.response.use((response) =>
     isRefreshing     = true;
 
     try {
-      await api.post("/auth/refresh"); // refresh cookie sent automatically
+      // refresh cookie sent automatically
+      const { data } = await api.post<ApiResponse<{ csrfToken: string }>>("/auth/refresh");
+      if (data.success && data?.data) setCsrfToken(data.data.csrfToken);
       processQueue(null);
       return api(original);            // retry original request
     } catch (err) {
       processQueue(err);
-      // window.location.href = "/sign-in"; // refresh failed, force logout
+      window.location.href = "/sign-in"; // refresh failed, force logout
       return Promise.reject(err);
     } finally {
       isRefreshing = false;

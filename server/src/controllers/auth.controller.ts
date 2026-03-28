@@ -96,7 +96,7 @@ export const logout = async_handler(async (_req, res) => {
  * @description Generate access token via refresh token
  */
 
-export const generateAccessToekn = async_handler(async (req, res) => {
+export const refreshCookie = async_handler(async (req, res) => {
   const refreshToken = req.cookies?.[REFRESH_COOKIE];
   if (!refreshToken) return error(res, "Refresh toekn not provided", 401);
 
@@ -110,7 +110,7 @@ export const generateAccessToekn = async_handler(async (req, res) => {
   if (!user) return error(res, "User not found invalid token", 404);
 
   // set new cookies
-  setAuthCookies({ res, user: { userId: String(user._id), role: user.role }});
+  const { csrfToken } = setAuthCookies({ res, user: { userId: String(user._id), role: user.role }});
 
-  return success(res, "Access token generated successfully", 200);
+  return success(res, "Access token generated successfully", 200, { csrfToken });
 });

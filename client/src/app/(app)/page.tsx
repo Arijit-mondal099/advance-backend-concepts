@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import api from "@/lib/api";
+import { setCsrfToken } from "@/lib/csrf";
 import { Profile } from "@/lib/types";
 import { ApiResponse } from "@/lib/types/api-response";
 import { AxiosError } from "axios";
@@ -56,8 +57,11 @@ export default function Home() {
   useEffect(() => {
     async function getProfile() {
       try {
-        const { data } = await api.get<ApiResponse<Profile>>("/auth/me");
-        if (data.success && data.data) setProfile(data.data);
+        const { data } = await api.get<ApiResponse<{ user: Profile, csrfToken: string }>>("/auth/me");
+        if (data.success && data.data) {
+          setProfile(data.data.user);
+          setCsrfToken(data.data.csrfToken);
+        }
       } catch (err: unknown) {
         const msg =
           err instanceof AxiosError
