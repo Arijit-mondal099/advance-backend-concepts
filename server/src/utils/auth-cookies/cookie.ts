@@ -12,7 +12,7 @@ type Params = {
     user: { userId: string, role: "user" | "admin" }
 }
 
-export function setAuthCookies ({ res, user }: Params) {
+export function setAuthCookies ({ res, user }: Params): { accessToken: string, refreshToken: string, csrfToken: string } {
     const accessToken  = createAccessToken(user.userId, user.role)
     const refreshToken = createRefreshToken(user.userId)
     const csrfToken    = createCsrfToken()
@@ -23,6 +23,8 @@ export function setAuthCookies ({ res, user }: Params) {
     res.cookie(ACCESS_COOKIE,  accessToken,  accessTokenOptions(ACCESS_TOKEN_MAX_AGE))
     res.cookie(REFRESH_COOKIE, refreshToken, refreshTokenOptions(REFRESH_TOKEN_MAX_AGE))
     res.cookie(CSRF_COOKIE,    csrfToken,    csrfTokenOptions(REFRESH_TOKEN_MAX_AGE))
+
+    return { accessToken, csrfToken, refreshToken }
 }
 
 export function clearAuthCookies (res: Response) {

@@ -4,7 +4,7 @@ import { async_handler } from "../utils/async-handler";
 import bcrypt from "bcryptjs";
 import { clearAuthCookies, setAuthCookies } from "../utils/auth-cookies/cookie";
 import { EXTRACT_SAFE_USER_SELECT_OPTIONS } from "../lib/constants";
-import { REFRESH_COOKIE } from "../utils/auth-cookies/cookie-options";
+import { CSRF_COOKIE, REFRESH_COOKIE } from "../utils/auth-cookies/cookie-options";
 import jwt from "jsonwebtoken";
 import { CookiePayload } from "../types/cookie.type";
 import { SigninBody, SignupBody } from "../schemas/auth";
@@ -61,9 +61,9 @@ export const signin = async_handler(async (req, res) => {
   await clearFaildAttemps(user)
 
   // Cookie set up for e.g. access-token, refresh-token, and csrf-toen
-  setAuthCookies({ res, user: { userId: String(user._id), role: user.role }});
+  const { csrfToken } = setAuthCookies({ res, user: { userId: String(user._id), role: user.role }});
 
-  return success(res, "Sign in successfully", 200, { id: user._id });
+  return success(res, "Sign in successfully", 200, { id: user._id, csrfToken });
 });
 
 
@@ -75,7 +75,7 @@ export const signin = async_handler(async (req, res) => {
 export const me = async_handler(async (req, res) => {
   const user = await User.findById(req.user?.userId).select(EXTRACT_SAFE_USER_SELECT_OPTIONS);
   if (!user) return error(res, "Oops user not found", 404)
-  return success(res, "Success", 200, user)
+  return success(res, "Success", 200, { user, csrfToken: req.cookies?.[CSRF_COOKIE] })
 });
 
 
