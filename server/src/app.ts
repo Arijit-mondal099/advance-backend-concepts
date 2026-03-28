@@ -14,6 +14,7 @@ import adminRouter from "./routes/admin.route"
 
 const app: Application = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 
 app.use(corsOptions);
 
